@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Calculator</title>
+    <style>
+        :root {
+            --bg: #f4f4f9;
+            --card: #ffffff;
+            --text: #1c1c1e;
+            --surface: #ececec;
+            --surface-hover: #dcdcdc;
+            --button-bg: #ffffff;
+            --button-hover: #f2f3f8;
+            --button-border: rgba(0, 0, 0, 0.08);
+            --button-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+            --display-bg: #121828;
+            --display-text: #ffffff;
+            --history-bg: #f6f7fb;
+            --history-border: #e6e6ea;
+            --calculator-border: rgba(0, 0, 0, 0.08);
+            --operator: #ff9f0a;
+            --clear: #ff3b30;
+            --equal: #34c759;
+            --nav: #ffffff;
+            --nav-text: #1c1c1e;
+        }
+
+        body.dark {
+            --bg: #121212;
+            --card: #1f1f1f;
+            --text: #f1f1f1;
+            --surface: #2a2a2e;
+            --surface-hover: #3b3b40;
+            --button-bg: #1f1f28;
+            --button-hover: #2a2a33;
+            --button-border: rgba(255, 255, 255, 0.12);
+            --button-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+            --display-bg: #0f1726;
+            --display-text: #ffffff;
+            --history-bg: #181c2e;
+            --history-border: #2a2f44;
+            --calculator-border: rgba(255, 255, 255, 0.08);
+            --operator: #ff9f0a;
+            --clear: #ff453a;
+            --equal: #30d158;
+            --nav: #1e1e1e;
+            --nav-text: #f1f1f1;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            padding: 12px;
+        }
+
+        .calculator-wrapper {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+            padding: 16px 20px;
+            border-radius: 18px;
+            background: var(--nav);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+        }
+
+        .brand {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .nav-actions button,
+        .buttons button {
+            font-size: 16px;
+            padding: 10px 14px;
+            border: none;
+            border-radius: 12px;
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .nav-actions button:hover,
+        .buttons button:hover {
+            background: var(--surface-hover);
+        }
+
+        .calculator {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 22px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.12);
+            border: 1px solid var(--calculator-border);
+        }
+
+        .display {
+            width: 100%;
+            min-height: 72px;
+            margin-bottom: 14px;
+            border-radius: 18px;
+            padding: 0 24px;
+            font-size: 32px;
+            text-align: right;
+            line-height: 72px;
+            background: var(--display-bg);
+            color: var(--display-text);
+            border: 1px solid var(--history-border);
+            box-sizing: border-box;
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 4px 18px rgba(0, 0, 0, 0.12);
+        }
+
+        .history {
+            margin-bottom: 18px;
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: var(--history-bg);
+            color: var(--text);
+            font-size: 14px;
+            min-height: 48px;
+            line-height: 1.5;
+            word-break: break-word;
+            border: 1px solid var(--history-border);
+        }
+
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+        }
+
+        button {
+            font-size: 20px;
+            padding: 18px 0;
+            border: 1px solid var(--button-border);
+            border-radius: 18px;
+            background: var(--button-bg);
+            color: var(--text);
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+            box-shadow: var(--button-shadow);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            background: var(--button-hover);
+            box-shadow: 0 18px 30px rgba(0, 0, 0, 0.14);
+        }
+
+        button.operator {
+            background: var(--operator);
+            color: #fff;
+            border-color: rgba(255, 159, 10, 0.4);
+            box-shadow: 0 12px 28px rgba(255, 159, 10, 0.18);
+        }
+
+        button.clear {
+            background: var(--clear);
+            color: #fff;
+            border-color: rgba(255, 59, 48, 0.4);
+            box-shadow: 0 12px 28px rgba(255, 59, 48, 0.18);
+        }
+
+        button.equal {
+            background: var(--equal);
+            color: #fff;
+            grid-column: span 2;
+            border-color: rgba(52, 199, 89, 0.45);
+            box-shadow: 0 12px 28px rgba(52, 199, 89, 0.18);
+        }
+
+        button.operator:hover,
+        button.clear:hover,
+        button.equal:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .ocean-background {
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            overflow: hidden;
+            background: linear-gradient(180deg, #a0d8f1 0%, #76c6e2 45%, #4ea3ce 100%);
+        }
+
+        .ocean-wave {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 200%;
+            height: 180px;
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 43%;
+            animation: waveMove 8s ease-in-out infinite;
+            opacity: 0.55;
+        }
+
+        .ocean-wave.wave2 {
+            bottom: 10px;
+            animation-duration: 10s;
+            opacity: 0.35;
+        }
+
+        .fish {
+            position: absolute;
+            width: 80px;
+            height: 40px;
+            background: linear-gradient(135deg, #ffb347, #ffcc33);
+            border-radius: 40% 60% 60% 40% / 50%;
+            box-shadow: inset -5px 0 0 rgba(0, 0, 0, 0.08);
+        }
+
+        .fish::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: -18px;
+            width: 24px;
+            height: 16px;
+            background: inherit;
+            border-radius: 50%;
+            transform: rotate(-20deg);
+        }
+
+        .fish::after {
+            content: '';
+            position: absolute;
+            right: 4px;
+            top: 8px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        .fish.fish-1 {
+            top: 18%;
+            left: 5%;
+            animation: swim1 12s linear infinite;
+        }
+
+        .fish.fish-2 {
+            top: 40%;
+            left: 80%;
+            width: 60px;
+            height: 30px;
+            animation: swim2 14s linear infinite;
+        }
+
+        .fish.fish-3 {
+            top: 65%;
+            left: 20%;
+            width: 70px;
+            height: 34px;
+            animation: swim3 16s linear infinite;
+        }
+
+        @keyframes waveMove {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            50% {
+                transform: translateX(-25%);
+            }
+        }
+
+        @keyframes swim1 {
+            0% {
+                transform: translateX(0) translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateX(20vw) translateY(-8px) rotate(5deg);
+            }
+
+            50% {
+                transform: translateX(40vw) translateY(4px) rotate(-5deg);
+            }
+
+            75% {
+                transform: translateX(60vw) translateY(-4px) rotate(3deg);
+            }
+
+            100% {
+                transform: translateX(80vw) translateY(0) rotate(0deg);
+            }
+        }
+
+        @keyframes swim2 {
+            0% {
+                transform: translateX(0) translateY(0) rotate(0deg);
+            }
+
+            25% {
+                transform: translateX(-25vw) translateY(6px) rotate(-4deg);
+            }
+
+            50% {
+                transform: translateX(-50vw) translateY(-8px) rotate(4deg);
+            }
+
+            75% {
+                transform: translateX(-75vw) translateY(4px) rotate(-3deg);
+            }
+
+            100% {
+                transform: translateX(-100vw) translateY(0) rotate(0deg);
+            }
+        }
+
+        @keyframes swim3 {
+            0% {
+                transform: translateX(0) translateY(0) rotate(0deg);
+            }
+
+            20% {
+                transform: translateX(10vw) translateY(-6px) rotate(3deg);
+            }
+
+            40% {
+                transform: translateX(20vw) translateY(8px) rotate(-4deg);
+            }
+
+            60% {
+                transform: translateX(30vw) translateY(-6px) rotate(2deg);
+            }
+
+            80% {
+                transform: translateX(40vw) translateY(6px) rotate(-2deg);
+            }
+
+            100% {
+                transform: translateX(50vw) translateY(0) rotate(0deg);
+            }
+        }
+
+        /* Small phones (< 360px) */
+        @media (max-width: 359px) {
+            .calculator-wrapper {
+                max-width: 95%;
+            }
+
+            .navbar {
+                padding: 12px 14px;
+                margin-bottom: 14px;
+            }
+
+            .brand {
+                font-size: 16px;
+            }
+
+            .nav-actions button {
+                font-size: 14px;
+                padding: 8px 10px;
+            }
+
+            .calculator {
+                padding: 14px;
+                border-radius: 16px;
+            }
+
+            .display {
+                min-height: 60px;
+                font-size: 24px;
+                line-height: 60px;
+                padding: 0 16px;
+                margin-bottom: 12px;
+            }
+
+            .history {
+                font-size: 12px;
+                padding: 10px 12px;
+                min-height: 40px;
+                margin-bottom: 12px;
+            }
+
+            .buttons {
+                gap: 10px;
+            }
+
+            button {
+                font-size: 16px;
+                padding: 14px 0;
+            }
+        }
+
+        /* Phones (360px - 480px) */
+        @media (min-width: 360px) and (max-width: 480px) {
+            .calculator-wrapper {
+                max-width: 92%;
+            }
+
+            .navbar {
+                padding: 14px 16px;
+                margin-bottom: 16px;
+            }
+
+            .brand {
+                font-size: 18px;
+            }
+
+            .nav-actions button {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+
+            .calculator {
+                padding: 16px;
+            }
+
+            .display {
+                min-height: 64px;
+                font-size: 28px;
+                line-height: 64px;
+            }
+
+            .history {
+                font-size: 13px;
+                padding: 12px 14px;
+            }
+
+            .buttons {
+                gap: 12px;
+            }
+
+            button {
+                font-size: 18px;
+                padding: 16px 0;
+            }
+        }
+
+        /* Tablets (480px - 768px) */
+        @media (min-width: 480px) and (max-width: 768px) {
+            .calculator-wrapper {
+                max-width: 85%;
+            }
+
+            .navbar {
+                padding: 16px 18px;
+                margin-bottom: 18px;
+            }
+
+            .calculator {
+                padding: 18px;
+            }
+
+            .display {
+                min-height: 68px;
+                font-size: 30px;
+                line-height: 68px;
+            }
+
+            button {
+                font-size: 19px;
+                padding: 17px 0;
+            }
+        }
+
+        /* Large devices (> 768px) */
+        @media (min-width: 768px) {
+            .calculator-wrapper {
+                max-width: 420px;
+            }
+
+            body {
+                padding: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ocean-background">
+        <div class="ocean-wave"></div>
+        <div class="ocean-wave wave2"></div>
+        <div class="fish fish-1"></div>
+        <div class="fish fish-2"></div>
+        <div class="fish fish-3"></div>
+    </div>
+    <div class="calculator-wrapper">
+        <nav class="navbar">
+            <span class="brand">Calculator</span>
+            <div class="nav-actions">
+                <button id="theme-btn">Dark Mode</button>
+            </div>
+        </nav>
+
+        <div class="calculator">
+            <div id="display" class="display">0</div>
+            <div id="history" class="history">No previous calculations yet</div>
+            <div class="buttons">
+                <button class="clear" data-action="clear">C</button>
+                <button data-action="delete">DEL</button>
+                <button data-action="percent">%</button>
+                <button class="operator" data-action="/">÷</button>
+                <button data-action="7">7</button>
+                <button data-action="8">8</button>
+                <button data-action="9">9</button>
+                <button class="operator" data-action="*">×</button>
+                <button data-action="4">4</button>
+                <button data-action="5">5</button>
+                <button data-action="6">6</button>
+                <button class="operator" data-action="-">−</button>
+                <button data-action="1">1</button>
+                <button data-action="2">2</button>
+                <button data-action="3">3</button>
+                <button class="operator" data-action="+">+</button>
+                <button data-action="0">0</button>
+                <button data-action=".">.</button>
+                <button class="equal" data-action="=">=</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const display = document.getElementById('display');
+        const historyText = document.getElementById('history');
+        const themeBtn = document.getElementById('theme-btn');
+        const buttons = document.querySelector('.buttons');
+
+        let currentValue = '0';
+        let previousValue = null;
+        let currentOperator = null;
+        let waitingForNewValue = false;
+        const calculations = [];
+
+        function updateDisplay() {
+            display.textContent = currentValue;
+        }
+
+        function saveHistory() {
+            localStorage.setItem('calculatorHistory', JSON.stringify(calculations));
+        }
+
+        function loadHistory() {
+            const saved = localStorage.getItem('calculatorHistory');
+            if (!saved) {
+                return;
+            }
+            try {
+                const values = JSON.parse(saved);
+                if (Array.isArray(values)) {
+                    calculations.splice(0, calculations.length, ...values);
+                }
+            } catch (error) {
+                console.warn('Failed to load calculator history:', error);
+            }
+        }
+
+        function updateHistory() {
+            historyText.textContent = calculations.length > 0
+                ? calculations[0]
+                : 'No previous calculations yet';
+        }
+
+        function resetCalculator() {
+            currentValue = '0';
+            previousValue = null;
+            currentOperator = null;
+            waitingForNewValue = false;
+        }
+
+        function backspace() {
+            if (waitingForNewValue) {
+                resetCalculator();
+                return;
+            }
+            currentValue = currentValue.length > 1
+                ? currentValue.slice(0, -1)
+                : '0';
+        }
+
+        function appendNumber(number) {
+            if (waitingForNewValue) {
+                currentValue = number;
+                waitingForNewValue = false;
+                return;
+            }
+            currentValue = currentValue === '0' ? number : currentValue + number;
+        }
+
+        function appendDecimal() {
+            if (waitingForNewValue) {
+                currentValue = '0.';
+                waitingForNewValue = false;
+                return;
+            }
+            if (!currentValue.includes('.')) {
+                currentValue += '.';
+            }
+        }
+
+        function storeCalculation(expression) {
+            calculations.unshift(expression);
+            if (calculations.length > 5) {
+                calculations.pop();
+            }
+            saveHistory();
+            updateHistory();
+        }
+
+        function compute() {
+            if (currentOperator === null || previousValue === null) {
+                return;
+            }
+
+            const prev = parseFloat(previousValue);
+            const current = parseFloat(currentValue);
+            let result;
+
+            switch (currentOperator) {
+                case '+':
+                    result = prev + current;
+                    break;
+                case '-':
+                    result = prev - current;
+                    break;
+                case '*':
+                    result = prev * current;
+                    break;
+                case '/':
+                    if (current === 0) {
+                        alert('Cannot divide by zero');
+                        return;
+                    }
+                    result = prev / current;
+                    break;
+                default:
+                    return;
+            }
+
+            const expression = `${previousValue} ${currentOperator} ${currentValue} = ${result}`;
+            storeCalculation(expression);
+            currentValue = String(result);
+            previousValue = null;
+            currentOperator = null;
+            waitingForNewValue = true;
+        }
+
+        function setOperator(operator) {
+            if (currentOperator !== null && !waitingForNewValue) {
+                compute();
+            }
+            previousValue = currentValue;
+            currentOperator = operator;
+            waitingForNewValue = true;
+        }
+
+        function applyPercent() {
+            currentValue = String(parseFloat(currentValue) / 100);
+        }
+
+        function handleButton(action) {
+            switch (action) {
+                case 'clear':
+                    resetCalculator();
+                    break;
+                case 'delete':
+                    backspace();
+                    break;
+                case '.':
+                    appendDecimal();
+                    break;
+                case '=':
+                    compute();
+                    break;
+                case '%':
+                    applyPercent();
+                    break;
+                case '+':
+                case '-':
+                case '*':
+                case '/':
+                    setOperator(action);
+                    break;
+                default:
+                    appendNumber(action);
+                    break;
+            }
+            updateDisplay();
+        }
+
+        function handleKey(event) {
+            const key = event.key;
+
+            if (/^[0-9]$/.test(key)) {
+                appendNumber(key);
+                updateDisplay();
+                return;
+            }
+
+            if (key === '.') {
+                appendDecimal();
+                updateDisplay();
+                return;
+            }
+
+            if (key === 'Backspace') {
+                backspace();
+                updateDisplay();
+                return;
+            }
+
+            if (key === 'Delete' || key === 'Escape') {
+                resetCalculator();
+                updateDisplay();
+                return;
+            }
+
+            if (key === 'Enter' || key === '=') {
+                event.preventDefault();
+                compute();
+                updateDisplay();
+                return;
+            }
+
+            if (['+', '-', '*', '/'].includes(key)) {
+                setOperator(key);
+                updateDisplay();
+                return;
+            }
+
+            if (key === '%') {
+                applyPercent();
+                updateDisplay();
+            }
+        }
+
+        buttons.addEventListener('click', (event) => {
+            const action = event.target.dataset.action;
+            if (!action) {
+                return;
+            }
+            handleButton(action);
+        });
+
+        loadHistory();
+        document.addEventListener('keydown', handleKey);
+
+        themeBtn.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            themeBtn.textContent = document.body.classList.contains('dark')
+                ? 'Light Mode'
+                : 'Dark Mode';
+        });
+
+        updateDisplay();
+        updateHistory();
+    </script>
+</body>
+
+</html>
